@@ -7,6 +7,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 db = SQLAlchemy(app)
 
-@app.route('/Hello', methods='GET')
+@app.route('/Hello', methods=['GET'])
 def hello_world():
     return 'hello world'
