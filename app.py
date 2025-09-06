@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Your_secret_key"
@@ -41,7 +41,7 @@ def login():
 
     try:
         user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
+        if user and bcrypt.checkpw(str.encode(password), str.encode(user.password)):
             login_user(user)
             return jsonify({"message": "Autenticação realizada com sucesso"})
 
@@ -76,7 +76,7 @@ def register():
         if existing_user:
             return jsonify({"message": "Usuário já existe"}), 400
 
-        hashed_password = generate_password_hash(password)
+        hashed_password = bcrypt.hashpw(str.encode(password), bcrypt.gensalt())
         new_user = User(username=username, password=hashed_password, role='admin')
         db.session.add(new_user)
         db.session.commit()
@@ -122,7 +122,7 @@ def create_user():
         if existing_user:
             return jsonify({"message": "Usuário já existe"}), 400
 
-        hashed_password = generate_password_hash(password)
+        hashed_password = bcrypt.hashpw(str.encode(password), bcrypt.gensalt())
         new_user = User(username=username, password=hashed_password, role='user')
         db.session.add(new_user)
         db.session.commit()
@@ -167,7 +167,7 @@ def update_password(id_user):
             return jsonify({"message": "Voce não pode alterar a senha de outros usuários"}), 403
 
         if user:
-            hashed_password = generate_password_hash(password)
+            hashed_password = bcrypt.hashpw(str.encode(password), bcrypt.gensalt())
             user.password = hashed_password
             db.session.commit()
 
