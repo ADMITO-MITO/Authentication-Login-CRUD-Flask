@@ -77,7 +77,7 @@ def register():
             return jsonify({"message": "Usuário já existe"}), 400
 
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, password=hashed_password, role='admin')
         db.session.add(new_user)
         db.session.commit()
 
@@ -114,13 +114,16 @@ def create_user():
     if not username.strip() or not password.strip():
         return jsonify({"message": "Username e password não podem ser vazios"}), 400
 
+    if current_user.role=='user':
+        return jsonify({"message": "é necessario ser admin para criar outros usuários"}), 403
+
     try:
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return jsonify({"message": "Usuário já existe"}), 400
 
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, password=hashed_password, role='user')
         db.session.add(new_user)
         db.session.commit()
 
@@ -160,6 +163,9 @@ def update_password(id_user):
 
     try:
         user = db.session.get(User, id_user)
+        if id_user != current_user.id and current_user.role == 'user':
+            return jsonify({"message": "Voce não pode alterar a senha de outros usuários"}), 403
+
         if user:
             hashed_password = generate_password_hash(password)
             user.password = hashed_password
@@ -176,6 +182,8 @@ def update_password(id_user):
 @app.route('/user/<int:id_user>', methods=["DELETE"])
 @login_required
 def delete_user(id_user):
+    if current_user.role!='admin':
+        return jsonify({"message": "Operação válida somente para admins"}), 403
     try:
         if id_user == current_user.id:
             return jsonify({"message": "Você não pode deletar sua própria conta"}), 403
