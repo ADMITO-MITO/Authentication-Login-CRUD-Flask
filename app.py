@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Your_secret_key"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Babedobabe1#@127.0.0.1:3306/flask-crud'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar banco de dados
@@ -23,10 +23,10 @@ def unauthorized():
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models.user import User  # Importar aqui para evitar circular imports
+    from models.user import User
     return db.session.get(User, int(user_id))
 
-# Rotas de autenticação
+# Rotas de API
 @app.route('/login', methods=["POST"])
 def login():
     if not request.is_json:
@@ -50,13 +50,12 @@ def login():
     except Exception as e:
         return jsonify({"message": "Erro interno do servidor"}), 500
 
-@app.route('/logout', methods=["GET"])
+@app.route('/logout', methods=["POST"])
 @login_required
 def logout():
     logout_user()
     return jsonify({"message": "Logout realizado com sucesso!"})
 
-# Rotas de usuário
 @app.route('/register', methods=["POST"])
 def register():
     if not request.is_json:
@@ -135,7 +134,7 @@ def create_user():
 @login_required
 def get_user(id_user):
     try:
-        user = User.query.get(id_user)
+        user = db.session.get(User, id_user)
         if user:
             return jsonify({
                 "id": user.id,
@@ -160,7 +159,7 @@ def update_password(id_user):
         return jsonify({"message": "Nova senha é obrigatória"}), 400
 
     try:
-        user = User.query.get(id_user)
+        user = db.session.get(User, id_user)
         if user:
             hashed_password = generate_password_hash(password)
             user.password = hashed_password
@@ -181,7 +180,7 @@ def delete_user(id_user):
         if id_user == current_user.id:
             return jsonify({"message": "Você não pode deletar sua própria conta"}), 403
 
-        user = User.query.get(id_user)
+        user = db.session.get(User, id_user)
         if user:
             db.session.delete(user)
             db.session.commit()
@@ -193,7 +192,6 @@ def delete_user(id_user):
         db.session.rollback()
         return jsonify({"message": "Erro ao deletar usuário"}), 500
 
-# Rota para informações do usuário atual
 @app.route('/me', methods=["GET"])
 @login_required
 def get_current_user():
@@ -205,8 +203,8 @@ def get_current_user():
 
 if __name__ == "__main__":
     with app.app_context():
-        # Importar modelos dentro do contexto para evitar problemas
         from models.user import User
         db.create_all()
+        db.session.commit()
         print("Tabelas criadas com sucesso!")
     app.run(debug=True)
