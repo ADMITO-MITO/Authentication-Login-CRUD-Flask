@@ -3,8 +3,8 @@ from flask_login import LoginManager, login_required, login_user, current_user, 
 import bcrypt
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "Your_secret_key"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Babedobabe1#@127.0.0.1:3306/flask-crud'
+app.config['SECRET_KEY'] = "$[SECRET_KEY]"
+app.config['SQLALCHEMY_DATABASE_URI'] = '$[DATABASE_URI]'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar banco de dados

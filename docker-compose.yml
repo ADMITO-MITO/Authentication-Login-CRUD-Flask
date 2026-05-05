@@ -13,4 +13,4 @@ services:
     expose:
       - "3306:3306"
     volumes:
-      - /Users/user/Documents/Paulao_piton-flask/mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
