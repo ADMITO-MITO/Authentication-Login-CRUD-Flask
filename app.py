@@ -1,10 +1,14 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 import bcrypt
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "$[SECRET_KEY]"
-app.config['SQLALCHEMY_DATABASE_URI'] = '$[DATABASE_URI]'
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar banco de dados
